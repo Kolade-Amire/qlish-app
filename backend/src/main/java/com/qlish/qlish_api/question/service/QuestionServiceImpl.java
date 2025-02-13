@@ -5,13 +5,13 @@ import com.mongodb.MongoWriteException;
 import com.qlish.qlish_api.question.dto.QuestionDto;
 import com.qlish.qlish_api.question.model.Question;
 import com.qlish.qlish_api.test.enums.HandlerName;
-import com.qlish.qlish_api.test.enums.TestSubject;
+import com.qlish.qlish_api.test.enums.Subject;
 import com.qlish.qlish_api.exception.CustomQlishException;
 import com.qlish.qlish_api.exception.EntityNotFoundException;
 import com.qlish.qlish_api.test.factory.HandlerFactory;
 import com.qlish.qlish_api.test.handler.Handler;
 import com.qlish.qlish_api.question.dto.QuestionMapper;
-import com.qlish.qlish_api.question.repository.CustomQuestionRepository;
+import com.qlish.qlish_api.question.repository.QuestionRepository;
 import com.qlish.qlish_api.question.dto.AdminQuestionViewRequest;
 import com.qlish.qlish_api.question.dto.NewQuestionRequest;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,11 +37,11 @@ import java.util.List;
 public class QuestionServiceImpl implements QuestionService {
 
     private static final Logger logger = LoggerFactory.getLogger(QuestionServiceImpl.class);
-    private final CustomQuestionRepository questionRepository;
+    private final QuestionRepository questionRepository;
     private final MongoTemplate mongoTemplate;
     private final HandlerFactory handlerFactory;
 
-    @PreAuthorize("hasAuthority('ADMIN_READ')")
+
     @Override
     public Page<QuestionDto> getQuestionsBySubjectAndCriteria(AdminQuestionViewRequest request, Pageable pageable) {
 
@@ -72,7 +71,7 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN_UPDATE')")
+
     @Override
     public QuestionDto updateQuestion(QuestionDto request) {
 
@@ -83,8 +82,8 @@ public class QuestionServiceImpl implements QuestionService {
 
             if (request.getQuestionText() != null) question.setQuestionText(question.getQuestionText());
             if (request.getOptions() != null) question.setOptions(request.getOptions());
-            if (request.getAnswer() != null) question.setCorrectAnswer(request.getAnswer());
-            if (request.getModifiers() != null) question.setModifiers(request.getModifiers());
+            if (request.getAnswer() != null) question.setAnswer(request.getAnswer());
+            if (request.getAttributes() != null) question.setAttributes(request.getAttributes());
             if (request.getSubject() != null) question.setSubject(request.getSubject());
 
             var savedQuestion = saveQuestion(question);
@@ -94,7 +93,7 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN_DELETE')")
+
     @Override
     public void deleteQuestion(String id) {
         try {
@@ -106,11 +105,11 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN_CREATE')")
+
     @Override
     public QuestionDto addNewQuestion(NewQuestionRequest request) {
         try {
-            TestSubject subject = request.getSubject();
+            Subject subject = request.getSubject();
             Handler handler = handlerFactory.getHandler(HandlerName.getHandlerNameBySubject(subject));
 
             boolean isValid = handler.validateRequest(subject.toString(), request.getModifiers());
@@ -123,8 +122,8 @@ public class QuestionServiceImpl implements QuestionService {
                     .subject(subject)
                     .questionText(request.getQuestionText())
                     .options(request.getOptions())
-                    .correctAnswer(request.getAnswer())
-                    .modifiers(request.getModifiers())
+                    .answer(request.getAnswer())
+                    .attributes(request.getModifiers())
                     .build();
 
             var savedQuestion = saveQuestion(newQuestion);
@@ -136,7 +135,7 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN_READ')")
+
     @Override
     public QuestionDto getQuestion(String id) {
         var _id = new ObjectId(id);
@@ -145,7 +144,7 @@ public class QuestionServiceImpl implements QuestionService {
         return QuestionMapper.mapQuestionToQuestionDto(question);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN_CREATE')")
+
     @Override
     public Question saveQuestion(Question question) {
         try {

@@ -1,6 +1,6 @@
 package com.qlish.qlish_api.util;
 
-import com.qlish.qlish_api.test.enums.DifficultyLevel;
+import com.qlish.qlish_api.question.enums.DifficultyLevel;
 
 import java.util.Map;
 
@@ -36,8 +36,8 @@ public static int getTotalPoints(int scorePercentage, DifficultyLevel difficulty
     Map<DifficultyLevel, Integer> multiplierMapping = Map.of(
             DifficultyLevel.ELEMENTARY, 1,
             DifficultyLevel.INTERMEDIATE, 2,
-            DifficultyLevel.ADVANCED, 3,
-            DifficultyLevel.RANDOM, 2
+            DifficultyLevel.ADVANCED, 3
+//            DifficultyLevel.RANDOM, 2
     );
     return (multiplierMapping.get(difficultyLevel) * gradedPoints);
 }

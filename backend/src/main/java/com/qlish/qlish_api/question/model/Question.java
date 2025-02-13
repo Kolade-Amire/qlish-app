@@ -1,6 +1,7 @@
 package com.qlish.qlish_api.question.model;
 
-import com.qlish.qlish_api.test.enums.TestSubject;
+import com.qlish.qlish_api.question.enums.DifficultyLevel;
+import com.qlish.qlish_api.test.enums.Subject;
 import lombok.*;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -11,17 +12,17 @@ import java.util.Map;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @Document(collection = "questions")
 public class Question{
-    @EqualsAndHashCode.Include
     @Id
     private ObjectId id;
     private String questionText;
     private Map<String, String> options;
-    private TestSubject subject;
-    private Map<String, String> modifiers;
-    private String correctAnswer;
+    private Subject subject;
+    private String topic;
+    private DifficultyLevel level;
+    private String answer;
 }

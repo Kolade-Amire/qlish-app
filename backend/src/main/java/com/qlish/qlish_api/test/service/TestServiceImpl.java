@@ -1,34 +1,25 @@
 package com.qlish.qlish_api.test.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoTimeoutException;
 import com.mongodb.MongoWriteException;
-import com.qlish.qlish_api.util.AppConstants;
-import com.qlish.qlish_api.question.model.Question;
-import com.qlish.qlish_api.user.service.UserService;
-import com.qlish.qlish_api.test.dto.LeaderboardEntry;
-import com.qlish.qlish_api.test.dto.TestDto;
-import com.qlish.qlish_api.test.dto.TestQuestionDto;
-import com.qlish.qlish_api.test.enums.DifficultyLevel;
-import com.qlish.qlish_api.test.enums.HandlerName;
-import com.qlish.qlish_api.test.enums.TestStatus;
 import com.qlish.qlish_api.exception.*;
-import com.qlish.qlish_api.test.factory.HandlerFactory;
-import com.qlish.qlish_api.generativeAI.GeminiAI;
-import com.qlish.qlish_api.test.dto.TestMapper;
-import com.qlish.qlish_api.test.dto.TestQuestionMapper;
-import com.qlish.qlish_api.question.repository.CustomQuestionRepository;
-import com.qlish.qlish_api.test.repository.TestRepository;
-import com.qlish.qlish_api.test.dto.TestQuestionSubmissionRequest;
-import com.qlish.qlish_api.test.dto.TestRequest;
-import com.qlish.qlish_api.test.dto.TestSubmissionRequest;
-import com.qlish.qlish_api.test.model.TestDetails;
+import com.qlish.qlish_api.generativeAI.GeminiAIClient;
+import com.qlish.qlish_api.question.enums.DifficultyLevel;
+import com.qlish.qlish_api.question.model.Question;
+import com.qlish.qlish_api.question.repository.QuestionRepository;
+import com.qlish.qlish_api.test.dto.*;
+import com.qlish.qlish_api.test.enums.Subject;
+import com.qlish.qlish_api.test.enums.TestStatus;
+import com.qlish.qlish_api.test.handler.PromptHandler;
 import com.qlish.qlish_api.test.model.Test;
+import com.qlish.qlish_api.test.model.TestDetails;
 import com.qlish.qlish_api.test.model.TestQuestion;
 import com.qlish.qlish_api.test.model.TestResult;
+import com.qlish.qlish_api.test.repository.TestRepository;
+import com.qlish.qlish_api.user.service.UserService;
+import com.qlish.qlish_api.util.AppConstants;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.StringEscapeUtils;
 import org.bson.types.ObjectId;
@@ -43,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -50,12 +42,11 @@ import java.util.List;
 public class TestServiceImpl implements TestService {
 
     private static final Logger logger = LoggerFactory.getLogger(TestServiceImpl.class);
-    private final GeminiAI geminiAI;
+    private final GeminiAIClient geminiAIClient;
     private final UserService userService;
-    private final HandlerFactory handlerFactory;
-    private final ObjectMapper objectMapper;
+    private final PromptHandler handler;
     private final TestRepository testRepository;
-    private final CustomQuestionRepository customQuestionRepository;
+    private final QuestionRepository questionRepository;
     private final AllTimeLeaderboardService allTimeLeaderboardService;
     private final DailyLeaderboardService dailyLeaderboardService;
 
@@ -104,26 +95,15 @@ public class TestServiceImpl implements TestService {
             throw new GenerativeAIException(e.getMessage());
         }
 
-        DifficultyLevel difficultyLevel;
-        try {
-            var requestLevel = request.getModifiers().get("level");
-             difficultyLevel = DifficultyLevel.fromLevelName(requestLevel);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to process difficulty level from request. Add a 'level' field with a valid value and try again.");
-        }
+        TestDetails testDetails = TestDetails.builder()
+                .userId(returnObjectId(request.getUserId()))
+                .subject(request.getSubject())
+                .difficultyLevel(request.getLevel())
+                .startedAt(LocalDateTime.now())
+                .totalQuestions(request.getCount())
+                .isCompleted(false)
+                .build();
 
-        TestDetails testDetails = null;
-        if (difficultyLevel != null) {
-            testDetails = TestDetails.builder()
-                    .userId(returnObjectId(request.getUserId()))
-                    .testSubject(request.getSubject())
-                    .testType(request.getTestType())
-                    .difficultyLevel(difficultyLevel)
-                    .startedAt(LocalDateTime.now())
-                    .totalQuestions(request.getCount())
-                    .isCompleted(false)
-                    .build();
-        }
 
         List<TestQuestion> testQuestions = TestQuestionMapper.mapQuestionListToSavedTestQuestionDto(generatedQuestions);
 
@@ -139,37 +119,27 @@ public class TestServiceImpl implements TestService {
 
     @Override
     public List<Question> generateQuestions(TestRequest request) throws GenerativeAIException {
+        var subject = request.getSubject();
+        var difficultyLevel = DifficultyLevel.fromLevelName(request.getLevel().name());
+        Set<String> associatedTopics = subject.getTopicsForLevel(difficultyLevel);
+        String topicsString = String.join(", ", associatedTopics);
 
-        var handlerName = HandlerName.getHandlerNameBySubject(request.getSubject());
-        var testHandler = handlerFactory.getHandler(handlerName);
+        var prompt = handler.getPrompt(request, topicsString);
+        var systemInstruction = handler.getSystemInstruction();
+        try {
+            String generatedQuestions = geminiAIClient.generateQuestions(prompt, systemInstruction);
 
-        boolean isTestRequestValid = testHandler.validateRequest(request.getSubject().toString(), request.getModifiers());
-        if (isTestRequestValid) {
-            var prompt = testHandler.getPrompt(request);
-            var systemInstruction = testHandler.getSystemInstruction();
-
-            try {
-                String generatedQuestions = geminiAI.generateQuestions(prompt, systemInstruction);
-
-                var cleanedQuestions = getQuestionsFromResponse(generatedQuestions);
-                var questionsList = testHandler.parseJsonQuestions(cleanedQuestions);
-                return saveGeneratedQuestions(questionsList);
-            } catch (GenerativeAIException | JsonProcessingException e) {
-                throw new GenerativeAIException(e.getMessage());
-            }
+            var cleanedQuestions = getQuestionsFromResponse(generatedQuestions);
+            var questionsList = handler.parseJsonQuestions(cleanedQuestions);
+            return saveGeneratedQuestions(questionsList);
+        } catch (GenerativeAIException | JsonProcessingException e) {
+            throw new GenerativeAIException("Unable to generate questions, check request and try again.");
         }
-        throw new GenerativeAIException("Unable to generate questions, check request and try again.");
     }
 
     private String getQuestionsFromResponse(String jsonResponse) throws JsonProcessingException {
-        //get questions list from returned json response
-        JsonNode root = objectMapper.readTree(jsonResponse);
-        String escapedQuestionsJson = root.at(
-                "/candidates/0/content/parts/0/text"
-        ).asText();
-
         //unescape the questions list json string and clean it
-        return StringEscapeUtils.unescapeJson(escapedQuestionsJson)
+        return StringEscapeUtils.unescapeJson(jsonResponse)
                 .replaceAll("^```json|```$", "")
                 .trim();
     }
@@ -177,7 +147,7 @@ public class TestServiceImpl implements TestService {
     private List<Question> saveGeneratedQuestions(List<Question> generatedQuestions) {
 
         try {
-            return customQuestionRepository.saveAll(generatedQuestions);
+            return questionRepository.saveAll(generatedQuestions);
         } catch (CustomQlishException e) {
             throw new RuntimeException(e.getMessage(), e);
         } catch (MongoTimeoutException e) {
@@ -269,7 +239,7 @@ public class TestServiceImpl implements TestService {
         }
     }
 
-    private void gradeTest(Test test){
+    private void gradeTest(Test test) {
 
         try {
             TestResult result = TestGradingStrategy.calculateTestScore().apply(test.getQuestions());
@@ -296,20 +266,20 @@ public class TestServiceImpl implements TestService {
 
     }
 
-    private void updateUserPoints(ObjectId id, int pointsEarned){
+    private void updateUserPoints(ObjectId id, int pointsEarned) {
         userService.updateUserAllTimePoints(id, pointsEarned);
     }
 
     @Override
     public TestResult getTestResult(String id) {
-            var test = getTestById(returnObjectId(id));
-            var testDetails = test.getTestDetails();
-            return  TestResult.builder()
-                    .totalQuestions(testDetails.getTotalQuestions())
-                    .totalCorrectAnswers(testDetails.getTotalCorrect())
-                    .scorePercentage(testDetails.getScorePercentage())
-                    .pointsEarned(testDetails.getPointsEarned())
-                    .build();
+        var test = getTestById(returnObjectId(id));
+        var testDetails = test.getTestDetails();
+        return TestResult.builder()
+                .totalQuestions(testDetails.getTotalQuestions())
+                .totalCorrectAnswers(testDetails.getTotalCorrect())
+                .scorePercentage(testDetails.getScorePercentage())
+                .pointsEarned(testDetails.getPointsEarned())
+                .build();
     }
 
     private boolean isTestResultValid(TestResult result) {

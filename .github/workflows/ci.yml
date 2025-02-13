@@ -1,0 +1,117 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    env:
+      APP_NAME: ${{ secrets.APP_NAME }}
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      GOOGLE_CLIENT_REDIRECT_URI: ${{ secrets.GOOGLE_CLIENT_REDIRECT_URI }}
+      GOOGLE_CLIENT_AUTHORIZATION_URI: ${{ secrets.GOOGLE_CLIENT_AUTHORIZATION_URI }}
+      GOOGLE_CLIENT_TOKEN_URI: ${{ secrets.GOOGLE_CLIENT_TOKEN_URI }}
+      USER_INFO_URI: ${{ secrets.USER_INFO_URI }}
+      MONGO_URL: ${{ secrets.MONGO_URL }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+      MONGO_USERNAME: ${{ secrets.MONGO_USERNAME }}
+      REDIS_HOST: ${{ secrets.REDIS_HOST }}
+      REDIS_PORT: ${{ secrets.REDIS_PORT }}
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+      JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
+      ACCESS_TOKEN_EXPIRATION: ${{ secrets.ACCESS_TOKEN_EXPIRATION }}
+      REFRESH_TOKEN_EXPIRATION: ${{ secrets.REFRESH_TOKEN_EXPIRATION }}
+      TEST_JWT_SECRET: ${{ secrets.TEST_JWT_SECRET }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Create backend env file
+        run: |
+          echo "APP_NAME=${APP_NAME}" >> ./backend/src/test/resources/.env
+          echo "GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}" >> ./backend/src/test/resources/.env
+          echo "GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}" >> ./backend/src/test/resources/.env
+          echo "GOOGLE_CLIENT_REDIRECT_URI=${GOOGLE_CLIENT_REDIRECT_URI}" >> ./backend/src/test/resources/.env
+          echo "GOOGLE_CLIENT_AUTHORIZATION_URI=${GOOGLE_CLIENT_AUTHORIZATION_URI}" >> ./backend/src/test/resources/.env
+          echo "GOOGLE_CLIENT_TOKEN_URI=${GOOGLE_CLIENT_TOKEN_URI}" >> ./backend/src/test/resources/.env
+          echo "USER_INFO_URI=${USER_INFO_URI}" >> ./backend/src/test/resources/.env
+          echo "MONGO_URL=${MONGO_URL}" >> ./backend/src/test/resources/.env
+          echo "DB_NAME=${DB_NAME}" >> ./backend/src/test/resources/.env
+          echo "MONGO_PASSWORD=${MONGO_PASSWORD}" >> ./backend/src/test/resources/.env
+          echo "MONGO_USERNAME=${MONGO_USERNAME}" >> ./backend/src/test/resources/.env
+          echo "REDIS_HOST=${REDIS_HOST}" >> ./backend/src/test/resources/.env
+          echo "REDIS_PORT=${REDIS_PORT}" >> ./backend/src/test/resources/.env
+          echo "REDIS_PASSWORD=${REDIS_PASSWORD}" >> ./backend/src/test/resources/.env
+          echo "JWT_SECRET=${JWT_SECRET}" >> ./backend/src/test/resources/.env
+          echo "JWT_ISSUER=${JWT_ISSUER}" >> ./backend/src/test/resources/.env
+          echo "JWT_AUDIENCE=${JWT_AUDIENCE}" >> ./backend/src/test/resources/.env
+          echo "ACCESS_TOKEN_EXPIRATION=${ACCESS_TOKEN_EXPIRATION}" >> ./backend/src/test/resources/.env
+          echo "REFRESH_TOKEN_EXPIRATION=${REFRESH_TOKEN_EXPIRATION}" >> ./backend/src/test/resources/.env
+          echo "TEST_JWT_SECRET=${TEST_JWT_SECRET}" >> ./backend/src/test/resources/.env
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Make Maven wrapper executable
+        working-directory: ./backend
+        run: chmod +x mvnw
+
+      - name: Build and Test Backend
+        working-directory: ./backend
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: |
+          ./mvnw clean verify
+          ./mvnw test
+
+      - name: Backend Code Coverage
+        working-directory: ./backend
+        run: |
+          ./mvnw jacoco:report
+
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Create frontend env file
+        working-directory: ./frontend
+        run: |
+          echo "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}" >> .env
+
+      - name: Install Dependencies
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm install --save-dev jest @testing-library/react @testing-library/jest-dom
+
+      - name: Run Frontend Tests
+        working-directory: ./frontend
+        run: npm test
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build

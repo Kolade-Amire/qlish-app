@@ -1,7 +1,7 @@
 package com.qlish.qlish_api.test.dto;
 
 import com.qlish.qlish_api.test.enums.TestStatus;
-import com.qlish.qlish_api.test.enums.TestSubject;
+import com.qlish.qlish_api.test.enums.Subject;
 import com.qlish.qlish_api.test.model.TestQuestion;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,7 +24,7 @@ public class TestDto {
     @EqualsAndHashCode.Include
     private String id;
     private ObjectId userId;
-    private TestSubject testSubject;
+    private Subject subject;
     private List<TestQuestion> questions;
     private LocalDateTime startedAt;
     private TestStatus testStatus;

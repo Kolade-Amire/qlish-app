@@ -1,6 +1,6 @@
 package com.qlish.qlish_api.test.service;
 
-import com.qlish.qlish_api.test.enums.DifficultyLevel;
+import com.qlish.qlish_api.question.enums.DifficultyLevel;
 import com.qlish.qlish_api.util.PointsSystem;
 
 import java.util.function.BiFunction;

@@ -8,7 +8,7 @@ spring:
     restart:
       enabled: true
   application:
-    name: qlish-api
+    name: ${APP_NAME}
   docker:
     compose:
       enabled: false
@@ -40,7 +40,7 @@ spring:
       username: ${MONGO_USERNAME}
     redis:
       host: ${REDIS_HOST}
-      port: 6379
+      port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
 jwt:
   secret: ${JWT_SECRET}
@@ -51,10 +51,10 @@ jwt:
 
 
 server:
-  port: 8080
+  port: ${SERVER_PORT}
   error:
     include-message:
-api:
+gemini-api:
   key: ${GEMINI_API_KEY}
   endpoint: ${GEMINI_API_ENDPOINT}
 

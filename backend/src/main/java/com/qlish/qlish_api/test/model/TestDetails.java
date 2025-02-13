@@ -1,7 +1,7 @@
 package com.qlish.qlish_api.test.model;
 
-import com.qlish.qlish_api.test.enums.DifficultyLevel;
-import com.qlish.qlish_api.test.enums.TestSubject;
+import com.qlish.qlish_api.question.enums.DifficultyLevel;
+import com.qlish.qlish_api.test.enums.Subject;
 import com.qlish.qlish_api.test.enums.TestType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 public class TestDetails {
     private ObjectId userId;
     private TestType testType;
-    private TestSubject testSubject;
+    private Subject subject;
     private DifficultyLevel difficultyLevel;
     private LocalDateTime startedAt;
     private int totalQuestions;

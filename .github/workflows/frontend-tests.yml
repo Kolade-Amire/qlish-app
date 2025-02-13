@@ -1,0 +1,42 @@
+name: Frontend Tests
+
+on:
+  push:
+    branches:
+      - frontend-dev
+  pull_request:
+    branches:
+      - frontend-dev
+
+jobs:
+  frontend-tests:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Create frontend env file
+        working-directory: ./frontend
+        run: |
+          echo "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}" >> .env
+
+      - name: Install Dependencies
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm install --save-dev jest @testing-library/react @testing-library/jest-dom
+
+      - name: Run Frontend Tests
+        working-directory: ./frontend
+        run: npm test
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build

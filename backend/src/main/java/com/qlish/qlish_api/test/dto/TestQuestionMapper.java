@@ -36,8 +36,8 @@ public class TestQuestionMapper {
                 .id(question.getId())
                 .questionText(question.getQuestionText())
                 .options(question.getOptions())
-                .modifiers(question.getModifiers())
-                .correctAnswer(question.getCorrectAnswer())
+                .modifiers(question.getAttributes())
+                .correctAnswer(question.getAnswer())
                 .build();
     }
 

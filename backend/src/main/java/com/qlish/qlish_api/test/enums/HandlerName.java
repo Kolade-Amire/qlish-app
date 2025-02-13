@@ -17,7 +17,7 @@ public enum HandlerName {
 
     private final String handlerName;
 
-    public static String getHandlerNameBySubject(TestSubject subjectName) {
+    public static String getHandlerNameBySubject(Subject subjectName) {
         return Arrays.stream(HandlerName.values())
                 .filter(handlerEnumValue -> handlerEnumValue.name().equalsIgnoreCase(subjectName.name()))
                 .findFirst()

@@ -17,8 +17,8 @@ public class QuestionMapper {
                 .id(question.getId().toHexString())
                 .questionText(question.getQuestionText())
                 .options(question.getOptions())
-                .answer(question.getCorrectAnswer())
-                .modifiers(question.getModifiers())
+                .answer(question.getAnswer())
+                .attributes(question.getAttributes())
                 .subject(question.getSubject())
                 .build();
     }

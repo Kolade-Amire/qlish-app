@@ -29,14 +29,14 @@ public class TestController {
         return ResponseEntity.ok(test);
     }
 
-    @PostMapping("/new")
+    @PostMapping("/create")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> createTest(@RequestBody TestRequest testRequest) throws GenerativeAIException {
         var testId = testService.createTest(testRequest);
         return ResponseEntity.ok(testId);
     }
 
-    @GetMapping("/new/{id}")
+    @GetMapping("/{id}/take-test")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Page<TestQuestionDto>> startTest(@PathVariable String id, @RequestParam(defaultValue = "0") int pageNumber, @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
@@ -44,21 +44,21 @@ public class TestController {
         return ResponseEntity.ok(testQuestions);
     }
 
-    @PostMapping("/submit/{id}")
+    @PostMapping("/{id}/submit")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> submitTest(@RequestBody TestSubmissionRequest request) {
         var testId = testService.submitTest(request);
         return ResponseEntity.ok(testId);
     }
 
-    @GetMapping("result/{id}")
+    @GetMapping("/{id}/result")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<TestResult> getTestResult(@PathVariable String id) {
         var result = testService.getTestResult(id);
         return ResponseEntity.ok(result);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/delete")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> deleteTest(@PathVariable String id){
         testService.deleteTest(id);

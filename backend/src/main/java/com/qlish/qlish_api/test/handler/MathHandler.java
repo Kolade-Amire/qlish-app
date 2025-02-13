@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qlish.qlish_api.exception.HandlerException;
 import com.qlish.qlish_api.question.model.Question;
-import com.qlish.qlish_api.test.enums.DifficultyLevel;
-import com.qlish.qlish_api.test.enums.TestSubject;
+import com.qlish.qlish_api.question.enums.DifficultyLevel;
+import com.qlish.qlish_api.test.enums.Subject;
 import com.qlish.qlish_api.test.enums.math.MathClass;
 import com.qlish.qlish_api.test.dto.TestRequest;
 import lombok.RequiredArgsConstructor;
@@ -257,7 +257,7 @@ public class MathHandler implements Handler {
         try {
             var questionText = questionJson.get("question").asText();
             var subject = questionJson.get("subject").asText();
-            var testSubject = TestSubject.getSubjectByDisplayName(subject);
+            var testSubject = Subject.fromName(subject);
             var answer = questionJson.get("correctAnswer").asText();
 
             //extract options using the fields() iterator and pass them into a map
@@ -274,8 +274,8 @@ public class MathHandler implements Handler {
                     .questionText(questionText)
                     .options(options)
                     .subject(testSubject)
-                    .modifiers(modifiers)
-                    .correctAnswer(answer)
+                    .attributes(modifiers)
+                    .answer(answer)
                     .build();
 
         } catch (Exception e) {
@@ -294,7 +294,7 @@ public class MathHandler implements Handler {
     }
 
     private boolean isMath(String subject) {
-        if (!subject.equalsIgnoreCase(TestSubject.MATH.getDisplayName())) {
+        if (!subject.equalsIgnoreCase(Subject.MATH.getDisplayName())) {
             throw new IllegalArgumentException("Subject is not math, and math handler's method is being called!");
         }
         return true;

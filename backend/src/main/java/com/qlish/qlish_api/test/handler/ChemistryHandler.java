@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qlish.qlish_api.exception.HandlerException;
 import com.qlish.qlish_api.question.model.Question;
-import com.qlish.qlish_api.test.enums.DifficultyLevel;
-import com.qlish.qlish_api.test.enums.TestSubject;
+import com.qlish.qlish_api.question.enums.DifficultyLevel;
+import com.qlish.qlish_api.test.enums.Subject;
 import com.qlish.qlish_api.test.enums.chemistry.ChemistryClass;
 import com.qlish.qlish_api.test.dto.TestRequest;
 import lombok.RequiredArgsConstructor;
@@ -259,7 +259,7 @@ public class ChemistryHandler implements Handler {
     }
 
     private boolean isChemistry(String subject) {
-        if (!subject.equalsIgnoreCase(TestSubject.CHEMISTRY.getDisplayName())) {
+        if (!subject.equalsIgnoreCase(Subject.CHEMISTRY.getDisplayName())) {
             throw new IllegalArgumentException("Subject is not chemistry, and chemistry handler's method is being called!");
         }
         return true;
@@ -284,7 +284,7 @@ public class ChemistryHandler implements Handler {
             var questionText = questionJson.get("question").asText();
             var answer = questionJson.get("correctAnswer").asText();
             var subject = questionJson.get("subject").asText();
-            var testSubject = TestSubject.getSubjectByDisplayName(subject);
+            var testSubject = Subject.fromName(subject);
 
             //extract options using the fields() iterator and pass them into a map
             Map<String, String> options = new HashMap<>();
@@ -300,8 +300,8 @@ public class ChemistryHandler implements Handler {
                     .questionText(questionText)
                     .options(options)
                     .subject(testSubject)
-                    .modifiers(modifiers)
-                    .correctAnswer(answer)
+                    .attributes(modifiers)
+                    .answer(answer)
                     .build();
 
         } catch (Exception e) {

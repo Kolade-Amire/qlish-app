@@ -11,13 +11,12 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @Document(collection = "tests")
 public class Test {
     @Id
-    @EqualsAndHashCode.Include
     private ObjectId id;
     private TestDetails testDetails;
     private TestStatus testStatus;

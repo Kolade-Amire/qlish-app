@@ -1,7 +1,7 @@
-
 services:
   qlish-backend:
-    image: qlish-api:dev
+    image:
+      qlish-api:dev
     build:
       context: .
       dockerfile: Dockerfile
@@ -16,8 +16,7 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       AVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
     volumes:
-      - ./src:/app/src  # Bind-mount source code for live-reload
-      - ./target/classes:/app/target/classes # Bind-mount compiled classes for live-reload
+      - ./src:workspace/app/src  # Bind-mount source code for live-reload
     depends_on:
       - redis
     env_file:
@@ -27,9 +26,14 @@ services:
     image: redis:7.4.1
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    env_file:
+      - .env
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
 
 volumes:
-  redis-data-dev:
+  redis-data:
+    driver: local

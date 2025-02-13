@@ -108,10 +108,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ProblemDetail> handleIllegalArgumentException(IllegalArgumentException exception, HttpServletRequest request) {
-        LOGGER.error(exception.getMessage());
+        LOGGER.error(exception.getLocalizedMessage());
 
         var problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.getReasonPhrase());
-        problemDetail.setTitle("BAD REQUEST");
+        problemDetail.setTitle("Invalid Argument");
         problemDetail.setInstance(URI.create(request.getRequestURI()));
 
         return new ResponseEntity<>(problemDetail, HttpStatusCode.valueOf(problemDetail.getStatus()));
@@ -235,7 +235,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         var problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.getReasonPhrase());
 
-        problemDetail.setTitle("Invalid Request");
+        problemDetail.setTitle("Bad Request");
         problemDetail.setInstance(URI.create(request.getRequestURI()));
 
         return new ResponseEntity<>(problemDetail, HttpStatusCode.valueOf(problemDetail.getStatus()));
