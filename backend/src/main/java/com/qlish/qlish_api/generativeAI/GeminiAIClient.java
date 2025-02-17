@@ -6,7 +6,7 @@ import com.google.genai.types.Content;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
-import com.qlish.qlish_api.exception.GenerativeAIException;
+import com.qlish.qlish_api.exceptions.GenerativeAIException;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpException;
 import org.slf4j.Logger;

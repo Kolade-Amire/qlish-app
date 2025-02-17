@@ -26,17 +26,15 @@ public enum Role {
     ADMIN_FULL(
             Set.of(
                     ADMIN_READ,
-                    ADMIN_CREATE,
-                    ADMIN_DELETE,
-                    ADMIN_UPDATE
+                    ADMIN_WRITE,
+                    ADMIN_DELETE
             )
     ),
     DEV(
             Set.of(
                     ADMIN_READ,
-                    ADMIN_CREATE,
+                    ADMIN_WRITE,
                     ADMIN_DELETE,
-                    ADMIN_UPDATE,
                     DEV_DEFAULT,
                     USER_DEFAULT
             )

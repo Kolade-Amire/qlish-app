@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 public enum Permissions {
     ADMIN_READ("admin:read"),
     ADMIN_UPDATE("admin:update"),
-    ADMIN_CREATE("admin:create"),
+    ADMIN_WRITE("admin:write"),
     ADMIN_DELETE("admin:delete"),
     USER_DEFAULT("user:default"),
     DEV_DEFAULT("dev:default");

@@ -17,12 +17,12 @@ public class SecurityConstants {
     public static final String PASSWORDS_MISMATCH = "Passwords do not match!";
 
 
-    public static final String ERROR_URL = AppConstants.BASE_URL + "/auth/login?error";
+    public static final String ERROR_URL = "/auth/login?error";
 
     public static final String[] PUBLIC_URLS = {
-            AppConstants.BASE_URL + "/auth/**",
+            "/auth/**",
             "/oauth2/**",
-            AppConstants.BASE_URL + "/oauth2/**",
+            "/oauth2/**",
             "/v2/api-docs",
             "/v3/api-docs",
             "/v3/api-docs.yaml",
@@ -36,7 +36,5 @@ public class SecurityConstants {
             "/webjars/**",
             "/swagger-ui.html",
 
-};
-
-    public static String JWT_SECRET_KEY = System.getenv("JWT_SECRET_KEY");
+    };
 }

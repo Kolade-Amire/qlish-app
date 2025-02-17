@@ -44,25 +44,6 @@ public class User {
     private LocalDateTime lastLoginAt;
     @LastModifiedDate
     private LocalDateTime lastModifiedAt;
-    private long allTimePoints;
+    private Long allTimePoints;
     private LocalDate deletionDate;
-
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "_id=" + id +
-                ", firstname='" + firstname + '\'' +
-                ", lastname='" + lastname + '\'' +
-                ", profilePicture='" + profilePictureUrl + '\'' +
-                ", email='" + email + '\'' +
-                ", username='" + profileName + '\'' +
-                ", role='" + role.toString() + '\'' +
-                ", authProvider='" + authProvider + '\'' +
-                ", isEmailVerified='" + isEmailVerified + '\'' +
-                ", createdAt='" + createdAt + '\'' +
-                ", lastLoginAt='" + lastLoginAt + '\'' +
-                ", totalPoints='" + allTimePoints + '\'' +
-                '}';
-    }
 }

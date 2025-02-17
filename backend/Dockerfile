@@ -27,7 +27,7 @@ WORKDIR /app
 COPY --from=build /workspace/app/target/qlish-backend-0.0.1-SNAPSHOT.jar /app/qlish-backend-0.0.1-SNAPSHOT.jar
 
 # Create a non-root user and adjust permissions
-RUN addgroup -S spring && adduser -S spring -G spring && \
+RUN groupadd -r spring && useradd -r -g spring spring && \
     chown -R spring:spring /app
 
 USER spring
@@ -37,4 +37,4 @@ HEALTHCHECK --interval=30s --timeout=3s \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
 
 # Run the application
-ENTRYPOINT ["java", "-jar", "/app/backend-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "/app/qlish-backend-0.0.1-SNAPSHOT.jar"]

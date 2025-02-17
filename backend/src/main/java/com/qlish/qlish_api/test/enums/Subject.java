@@ -83,15 +83,15 @@ public enum Subject {
     )),
     GENERAL_KNOWLEDGE(Map.of(
             DifficultyLevel.ELEMENTARY, Set.of("current affairs", "countries & capitals"),
-            DifficultyLevel.INTERMEDIATE, Set.of("celebrities", "pop culture and entertainment", "countries & capitals", "historical events and dates"),
-            DifficultyLevel.ADVANCED, Set.of("pop culture and entertainment", "current affairs", "historical events and dates")
+            DifficultyLevel.INTERMEDIATE, Set.of("celebrities", "pop culture & entertainment", "countries & capitals", "historical events & dates"),
+            DifficultyLevel.ADVANCED, Set.of("pop culture & entertainment", "current affairs", "historical events & dates")
     ));
 
 
-    private final Map<DifficultyLevel, Set<String>> topicsByLevel;
+    private final Map<DifficultyLevel, Set<String>> topics;
 
     public static Subject fromName(String name) {
-        return Arrays.stream(Subject.values())
+            return Arrays.stream(Subject.values())
                 .filter(subject -> subject.name().equalsIgnoreCase(name))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("invalid subject: " + name));
@@ -99,7 +99,7 @@ public enum Subject {
     }
 
     public Set<String> getTopicsForLevel(DifficultyLevel level) {
-        return topicsByLevel.get(level);
+        return topics.get(level);
     }
 
 }

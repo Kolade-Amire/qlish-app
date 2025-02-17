@@ -2,11 +2,11 @@ package com.qlish.qlish_api.security.config;
 
 import com.qlish.qlish_api.util.AppConstants;
 import com.qlish.qlish_api.security.enums.Role;
-import com.qlish.qlish_api.security.service.CustomAuthenticationProvider;
-import com.qlish.qlish_api.security.service.JwtAccessDeniedHandler;
-import com.qlish.qlish_api.security.service.JwtAuthenticationEntryPoint;
-import com.qlish.qlish_api.security.service.JwtAuthenticationFilter;
-import com.qlish.qlish_api.user.service.CustomOAuth2UserService;
+import com.qlish.qlish_api.security.services.CustomAuthenticationProvider;
+import com.qlish.qlish_api.security.services.JwtAccessDeniedHandler;
+import com.qlish.qlish_api.security.services.JwtAuthenticationEntryPoint;
+import com.qlish.qlish_api.security.services.JwtAuthenticationFilter;
+import com.qlish.qlish_api.user.services.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +30,6 @@ import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
 
-import static com.qlish.qlish_api.util.AppConstants.BASE_URL;
 
 @Configuration
 @EnableWebSecurity
@@ -57,7 +56,7 @@ public class SecurityConfig {
                 .addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SecurityConstants.PUBLIC_URLS).permitAll()
-                        .requestMatchers(BASE_URL + "/questions/**").hasAnyRole(Role.ADMIN_FULL.toString(), Role.ADMIN_VIEW.toString(), Role.DEV.toString())
+                        .requestMatchers("/questions/**").hasAnyRole(Role.ADMIN_FULL.toString(), Role.ADMIN_VIEW.toString(), Role.DEV.toString())
                         .anyRequest().authenticated()
 
                 )
@@ -65,8 +64,8 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage(BASE_URL + "/auth/login")
-                        .defaultSuccessUrl(BASE_URL + "/user/dashboard", true)
+                        .loginPage("/auth/login")
+                        .defaultSuccessUrl("/user/dashboard", true)
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService))
                         .successHandler(authenticationSuccessHandler)

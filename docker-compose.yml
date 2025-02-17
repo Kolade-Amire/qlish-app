@@ -1,0 +1,69 @@
+services:
+  qlish-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      AVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    volumes:
+      - ./src:workspace/app/src  # Bind-mount source code for live-reload
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+    networks:
+      - backend-network
+
+
+  redis:
+    image: redis:7.4.1
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    volumes:
+      - redis-data:/data
+    env_file:
+      - ./backend/.env
+    command: [ "redis-server", "--requirepass", "${REDIS_PASSWORD}" ]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    networks:
+      - backend-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build: ./frontend
+    env_file:
+      - ./frontend/.env
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    environment:
+      PUBLIC_API_URL: ${PUBLIC_API_URL}
+    networks:
+      - frontend-network
+      - backend-network
+    depends_on:
+      - backend:
+          condition: service_healthy
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  backend-network:
+  frontend-network:

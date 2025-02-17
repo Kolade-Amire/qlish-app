@@ -1,9 +1,11 @@
 package com.qlish.qlish_api.util;
 
 import com.qlish.qlish_api.question.enums.DifficultyLevel;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
+@Slf4j
 public class PointsSystem {
 
     private static int calculatePoints(int scorePercentage) {
@@ -27,18 +29,18 @@ public class PointsSystem {
                 return value;
             }
         }
-         throw new IllegalArgumentException("Error: Invalid Score Percentage!");
+        log.error("Invalid score percentage: {}", scorePercentage);
+         throw new IllegalArgumentException("Invalid Score Percentage!");
 
 }
 
 public static int getTotalPoints(int scorePercentage, DifficultyLevel difficultyLevel) {
     var gradedPoints = calculatePoints(scorePercentage);
-    Map<DifficultyLevel, Integer> multiplierMapping = Map.of(
+    Map<DifficultyLevel, Integer> multiplierMap = Map.of(
             DifficultyLevel.ELEMENTARY, 1,
             DifficultyLevel.INTERMEDIATE, 2,
-            DifficultyLevel.ADVANCED, 3
-//            DifficultyLevel.RANDOM, 2
+            DifficultyLevel.ADVANCED, 4
     );
-    return (multiplierMapping.get(difficultyLevel) * gradedPoints);
+    return (multiplierMap.get(difficultyLevel) * gradedPoints);
 }
 }

@@ -65,7 +65,7 @@ jobs:
       - name: Create frontend env file
         working-directory: ./frontend
         run: |
-          echo "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}" >> .env
+          echo "PUBLIC_API_URL=${PUBLIC_API_URL}" >> .env
 
       - name: Build Backend Docker Image
         working-directory: ./backend

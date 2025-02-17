@@ -2,18 +2,20 @@ package com.qlish.qlish_api.question.enums;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+
 @Getter
 public enum DifficultyLevel {
     ADVANCED,
     INTERMEDIATE,
     ELEMENTARY;
 
-    public static DifficultyLevel fromLevelName(String levelName) {
-        for (DifficultyLevel level : DifficultyLevel.values()) {
-            if (level.name().equalsIgnoreCase(levelName)) {
-                return level;
-            }
-        }
-        throw new IllegalArgumentException("invalid difficulty level");
+    public static DifficultyLevel fromName(String level) {
+        return Arrays.stream(DifficultyLevel.values())
+                .filter(lvl -> lvl.name().equalsIgnoreCase(level))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("invalid difficulty level " + level));
+
+
     }
 }
