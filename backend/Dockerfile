@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk-focal as build
+FROM eclipse-temurin:17-jdk-focal AS build
 
 WORKDIR /workspace/app
 

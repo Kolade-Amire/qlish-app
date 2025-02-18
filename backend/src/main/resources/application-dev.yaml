@@ -51,12 +51,11 @@ jwt:
 
 
 server:
-  port: ${SERVER_PORT}
+  port: ${BACKEND_PORT}
   error:
     include-message:
 gemini-api:
   key: ${GEMINI_API_KEY}
-  endpoint: ${GEMINI_API_ENDPOINT}
 
 logging:
   level:

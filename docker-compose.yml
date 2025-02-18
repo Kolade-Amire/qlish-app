@@ -4,17 +4,17 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
     environment:
       SPRING_PROFILES_ACTIVE: prod
       AVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
     volumes:
-      - ./src:workspace/app/src  # Bind-mount source code for live-reload
+      - ./src:/workspace/app/src
     depends_on:
       redis:
         condition: service_healthy
     env_file:
-      - .env
+      - ./backend/.env
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 30s
@@ -46,7 +46,9 @@ services:
       start_period: 10s
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     env_file:
       - ./frontend/.env
     ports:
