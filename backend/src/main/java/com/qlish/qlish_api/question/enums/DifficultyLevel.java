@@ -6,9 +6,9 @@ import java.util.Arrays;
 
 @Getter
 public enum DifficultyLevel {
-    ADVANCED,
-    INTERMEDIATE,
-    ELEMENTARY;
+    HARD,
+    MEDIUM,
+    EASY;
 
     public static DifficultyLevel fromName(String level) {
         return Arrays.stream(DifficultyLevel.values())
