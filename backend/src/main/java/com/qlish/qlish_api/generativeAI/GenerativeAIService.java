@@ -6,21 +6,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Set;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class GenerativeAIService {
 
-
-
-
-    public String getPrompt(TestRequest request, String associatedTopics) {
+    public String getPrompt(TestRequest request) {
+        Set<String> associatedTopics = request.getSubject().getTopicsForLevel(request.getLevel());
+        String topicsString = String.join(", ", associatedTopics);
         try {
             if (request.isRandom()) {
                 return String.format("Generate %d random %s questions. \nAllowed topics are: %s",
                         request.getCount(),
                         request.getSubject(),
-                        associatedTopics
+                        topicsString
                 );
             }
             return String.format(
@@ -28,7 +29,7 @@ public class GenerativeAIService {
                     request.getCount(),
                     request.getSubject(),
                     request.getLevel(),
-                    associatedTopics
+                    topicsString
             );
 
         } catch (Exception e) {
