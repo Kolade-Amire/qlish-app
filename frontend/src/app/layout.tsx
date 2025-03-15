@@ -1,7 +1,7 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-expect-error
-import '../styles/globals.css';
+import './globals.css';
 import { Source_Sans_3 } from 'next/font/google'
 import type {Metadata} from "next";
 import LandingHeader from "./components/header.tsx";
@@ -27,8 +27,8 @@ export default function RootLayout({
     children: React.ReactNode
 }) {
     return (
-        <html lang="en" className={sourceSans3.variable}>
-            <body className="font-sans min-h-screen">
+        <html lang="en" className={`${sourceSans3.variable}`}>
+            <body className="font-sans min-h-screen bg-[#FFF0D3]">
                 <LandingHeader/>
                 <main>{children}</main>
                 <LandingFooter/>
