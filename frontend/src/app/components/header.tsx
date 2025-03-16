@@ -49,11 +49,11 @@ export default function LandingHeader() {
             {/* Mobile menu dropdown */}
             <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${menuOpen ? 'max-h-40 py-4' : 'max-h-0'}`}>
                 <div className="flex flex-col items-center gap-4 px-4">
-                    <Link href="#" className="w-full">
-                        <button className="text-[#2C3E50] font-semibold w-full h-9 text-[15px] hover:text-[#878686] transition-colors cursor-pointer">Log in</button>
+                    <Link href="#" className="w-auto">
+                        <button className="text-[#2C3E50] font-semibold w-28 h-9 text-[15px] hover:text-[#878686] transition-colors cursor-pointer">Log in</button>
                     </Link>
-                    <Link href="#" className="w-full">
-                        <button className="bg-[#2C3E50] hover:bg-[#6c6b6b] text-[#FFF0D3] text-[15px] w-full h-9 rounded-sm text-center justify-center flex items-center font-semibold cursor-pointer">Sign up</button>
+                    <Link href="#" className="w-auto">
+                        <button className="bg-[#2C3E50] hover:bg-[#6c6b6b] text-[#FFF0D3] text-[15px] w-28 h-9 rounded-sm text-center justify-center flex items-center font-semibold cursor-pointer">Sign up</button>
                     </Link>
                 </div>
             </div>

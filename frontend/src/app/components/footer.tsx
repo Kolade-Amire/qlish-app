@@ -90,7 +90,7 @@ export default function LandingFooter(){
                     </div>
                 </div>
                 <div className="mt-8 pt-8 border-t border-[#dbdbdb] text-center text-sm text-[#455a64]">
-                    Copyright ©2025, Qlish. All rights reserved
+                    Copyright ©2025, Qlish. All rights reserved.
                 </div>
             </footer>
         </div>

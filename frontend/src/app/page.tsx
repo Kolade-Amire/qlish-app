@@ -43,7 +43,7 @@ export default function LandingPage() {
                     </div>
                     <div className="mt-8 lg:mt-0">
                         <Image
-                            src="/hero.svg"
+                            src="/assets/images/hero.svg"
                             alt="Person with quiz app"
                             width={600}
                             height={600}
@@ -59,7 +59,7 @@ export default function LandingPage() {
                 <div className="flex flex-col lg:space-x-8 lg:space-y-0 space-y-8 lg:flex-row justify-center items-center max-w-5xl mx-auto">
                     {[
                         {title: "Compete to stay ahead", image: "/placeholder.svg?height=160&width=220"},
-                        {title: "Leverage AI to your taste", image: "/placeholder.svg?height=160&width=220"},
+                        {title: "Leverage AI to your taste", image: "/assets/images/img.png?height=160&width=220"},
                         {title: "Do more with less effort", image: "/placeholder.svg?height=160&width=220"},
                         {title: "Compete to stay ahead", image: "/placeholder.svg?height=160&width=220"},
                     ].map((item, index) => (
@@ -114,7 +114,7 @@ export default function LandingPage() {
             <section className="container mx-auto py-12 px-4 md:px-6 text-center">
                 <div className="max-w-md mx-auto">
                     <Image
-                        src="/cta_man.svg"
+                        src="/assets/images/cta_man.svg"
                         alt="Qlish Mascot"
                         width={400}
                         height={400}
