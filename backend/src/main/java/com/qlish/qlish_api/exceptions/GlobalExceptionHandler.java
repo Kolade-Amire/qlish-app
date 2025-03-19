@@ -4,24 +4,31 @@ import com.qlish.qlish_api.util.AppConstants;
 import com.qlish.qlish_api.security.config.SecurityConstants;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ProblemDetail;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -277,6 +284,63 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(problemDetail, HttpStatusCode.valueOf(problemDetail.getStatus()));
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Object> handleValidationException(ConstraintViolationException exception, HttpServletRequest request) {
+        LOGGER.error(exception.getLocalizedMessage());
+
+        //extract error messages from the exception
+        List<String> errorMessages = exception.getConstraintViolations()
+                .stream()
+                .map(ConstraintViolation::getMessage)
+                .toList();
+
+
+
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("title", "Constraint Validation Failed");
+        response.put("detail", "One or more validation errors occurred");
+        response.put("instance", request.getRequestURI());
+        response.put("properties", Map.of("errors", errorMessages));
+        response.put("status", HttpStatus.BAD_REQUEST.value());
+
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException exception,
+                                                                  @NonNull HttpHeaders headers,
+                                                                  @NonNull HttpStatusCode status,
+                                                                  @NonNull WebRequest request) {
+        LOGGER.error("Validation failed: {}", exception.getLocalizedMessage());
+
+        List<String> errorMessages = exception.getBindingResult()
+                .getAllErrors()
+                .stream()
+                .map(error -> {
+                    if (error instanceof FieldError fieldError) {
+                        return fieldError.getField() + ": " + fieldError.getDefaultMessage();
+                    }
+                    return error.getDefaultMessage();
+                })
+                .toList();
+
+        String requestUri = ((ServletWebRequest) request).getRequest().getRequestURI();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("title", "Request Validation Failed");
+        response.put("detail", "One or more validation errors occurred.");
+        response.put("instance", requestUri);
+        response.put("properties", Map.of("errors", errorMessages));
+        response.put("status", status.value());
+
+        return ResponseEntity
+                .badRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(response);
+    }
 
 
 

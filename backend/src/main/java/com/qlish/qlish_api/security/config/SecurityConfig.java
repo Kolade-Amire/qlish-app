@@ -1,12 +1,12 @@
 package com.qlish.qlish_api.security.config;
 
-import com.qlish.qlish_api.util.AppConstants;
 import com.qlish.qlish_api.security.enums.Role;
 import com.qlish.qlish_api.security.services.CustomAuthenticationProvider;
 import com.qlish.qlish_api.security.services.JwtAccessDeniedHandler;
 import com.qlish.qlish_api.security.services.JwtAuthenticationEntryPoint;
 import com.qlish.qlish_api.security.services.JwtAuthenticationFilter;
 import com.qlish.qlish_api.user.services.CustomOAuth2UserService;
+import com.qlish.qlish_api.util.AppConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,8 +25,8 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
 
@@ -51,9 +51,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("script-src 'self'")))
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
-                .addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SecurityConstants.PUBLIC_URLS).permitAll()
                         .requestMatchers("/questions/**").hasAnyRole(Role.ADMIN_FULL.toString(), Role.ADMIN_VIEW.toString(), Role.DEV.toString())
@@ -96,24 +97,18 @@ public class SecurityConfig {
 
 
     @Bean
-    public CorsFilter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(List.of(
+        config.setAllowedOrigins(List.of(
+                "http://localhost:3000" , //TODO:replace
                 "https://accounts.google.com",
                 "https://*.google.com",
                 "https://*.googleusercontent.com"));
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("GET");
-        config.addAllowedMethod("POST");
-        config.addAllowedMethod("PUT");
-        config.addAllowedMethod("DELETE");
-        config.addAllowedMethod("OPTIONS");
-        config.addExposedHeader(SecurityConstants.JWT_TOKEN_HEADER);
+        config.setAllowCredentials(true); // Allows cookies
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
+        return source;
     }
-
 
 }

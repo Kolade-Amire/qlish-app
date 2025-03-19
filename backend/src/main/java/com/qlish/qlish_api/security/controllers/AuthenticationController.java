@@ -11,22 +11,20 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.io.IOException;
 import java.net.URI;
 
 @RequestMapping("/auth")
 @RestController
 @RequiredArgsConstructor
 @Validated
+@Slf4j
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
@@ -34,7 +32,7 @@ public class AuthenticationController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<RegistrationResponse> register(@Valid @RequestBody RegistrationRequest request){
+    public ResponseEntity<RegistrationResponse> register(@Valid @RequestBody RegistrationRequest request) {
         RegistrationResponse response = authenticationService.register(request);
         URI newProfileLocation = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
@@ -45,22 +43,23 @@ public class AuthenticationController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> login(@Valid @RequestBody AuthenticationRequest request){
-        return ResponseEntity.ok(authenticationService.authenticate(request));
+    public ResponseEntity<AuthenticationResponse> login(@Valid @RequestBody AuthenticationRequest request, HttpServletResponse response) {
+        return ResponseEntity.ok(authenticationService.authenticate(request, response));
     }
 
 
     @PostMapping("/refresh")
-    public void refreshToken(
-            HttpServletRequest request,
-            HttpServletResponse response
+    public ResponseEntity<AuthenticationResponse> refreshToken(
+            @RequestBody(required = false) String token, @CookieValue(value = "refreshToken", required = false) String cookieRefreshToken, HttpServletResponse httpServletResponse
     ) {
-        try {
-            authenticationService.refreshAccessToken(request, response);
-            response.getOutputStream();
-        } catch (IOException e) {
-            throw new CustomQlishException("Failed to refresh token: ", e);
+        String refreshToken = (cookieRefreshToken != null) ? cookieRefreshToken : token;
+        if (refreshToken == null) {
+            log.error("auth/refresh: No refresh token provided");
+            throw new CustomQlishException("Please login again.");
         }
+        var response = authenticationService.refreshToken(refreshToken, httpServletResponse);
+        return ResponseEntity.ok(response);
+
     }
 
     @PostMapping("/logout")

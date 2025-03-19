@@ -1,6 +1,5 @@
 package com.qlish.qlish_api.security.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qlish.qlish_api.exceptions.CustomQlishException;
 import com.qlish.qlish_api.exceptions.EntityAlreadyExistException;
 import com.qlish.qlish_api.exceptions.PasswordsDoNotMatchException;
@@ -18,13 +17,13 @@ import com.qlish.qlish_api.user.model.UserPrincipal;
 import com.qlish.qlish_api.user.services.UserService;
 import com.qlish.qlish_api.util.HttpResponse;
 import io.jsonwebtoken.JwtException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -44,7 +43,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
-    private final ObjectMapper objectMapper;
 
 
     private String doPasswordsMatch(String p1, String p2) {
@@ -98,7 +96,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+    public AuthenticationResponse authenticate(AuthenticationRequest request, HttpServletResponse response) {
 
 
         try {
@@ -110,7 +108,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             );
         } catch (AuthenticationException e) {
             LOGGER.error("Error from authenticationManager.authenticate()", e);
-            throw new CustomQlishException("An error occurred while trying to authenticate user. Please try again later.");
+            throw new CustomQlishException("An error occurred while trying to authenticate. Please try again.");
         }
 
         var user = userService.getUserByEmail(request.getEmail());
@@ -120,6 +118,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (user.getDeletionDate() != null) {
             user.setDeletionDate(null);
         }
+        userService.saveUser(user);
 
 
         try {
@@ -142,9 +141,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new CustomQlishException("An error occurred while authenticating user.");
         }
 
-        saveUserRefreshToken(user, refreshToken);
+        saveToken(user, refreshToken);
 
-        var response = HttpResponse.builder()
+        //Set refresh token as HTTP-only cookie for web clients
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .path("/api")
+                .maxAge(30 * 24 * 60 * 60)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+        var httpResponse = HttpResponse.builder()
                 .timestamp(TIME_NOW)
                 .httpStatusCode(HttpStatus.OK.value())
                 .httpStatus(HttpStatus.OK)
@@ -156,7 +165,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         return AuthenticationResponse.builder()
                 .accessToken(accessToken)
-                .httpResponse(response)
+                .refreshToken(refreshToken) //for mobile clients
+                .httpResponse(httpResponse)
                 .user(userDto)
                 .build();
 
@@ -164,7 +174,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
 
-    private void saveUserRefreshToken(User user, String token) {
+    //save refresh token to redis
+    private void saveToken(User user, String token) {
 
         var newTokenEntity = Token.builder()
                 .userId(user.getId().toHexString())
@@ -182,50 +193,55 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public void refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
-
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        final String accessToken;
-        final String userEmail;
-        if (authHeader == null || !authHeader.startsWith(SecurityConstants.TOKEN_PREFIX)) {
-            return;
-        }
+    public AuthenticationResponse refreshToken(String refreshToken, HttpServletResponse response) {
 
         try {
-            accessToken = authHeader.substring(SecurityConstants.TOKEN_PREFIX.length());
-            userEmail = jwtService.extractUsername(accessToken);
+            String email = jwtService.extractUsername(refreshToken);
+            User user = userService.getUserByEmail(email);
+            UserPrincipal principal = new UserPrincipal(user);
+            boolean isValid = jwtService.isTokenValid(refreshToken, principal);
+            Token savedRefreshToken = tokenService.findTokenByUserId(user.getId().toHexString());
 
-            if (userEmail != null) {
-                var user = this.userService.getUserByEmail(userEmail);
-                var userPrincipal = new UserPrincipal(user);
-                var refreshToken = tokenService.findTokenByUserId(user.getId().toHexString());
+            if (isValid && tokenService.validateToken(refreshToken, savedRefreshToken)) {
+                String newAccessToken = jwtService.generateAccessToken(principal);
+                String newRefreshToken = jwtService.generateRefreshToken(principal);
 
-                if (jwtService.isTokenValid(refreshToken.getToken(), userPrincipal)) {
-                    var newAccessToken = jwtService.generateAccessToken(userPrincipal);
+                tokenService.deleteToken(savedRefreshToken);
 
+                saveToken(user, newRefreshToken);
 
-                    var customHttpResponse = HttpResponse.builder()
-                            .httpStatusCode(HttpStatus.OK.value())
-                            .httpStatus(HttpStatus.OK)
-                            .reason(HttpStatus.OK.getReasonPhrase())
-                            .message(SecurityConstants.REFRESHED_MESSAGE)
-                            .build();
+                // Update cookie for web clients
+                ResponseCookie newRefreshCookie = ResponseCookie.from("refreshToken", newRefreshToken)
+                        .httpOnly(true)
+                        .secure(true)
+                        .sameSite("Strict")
+                        .path("/auth")
+                        .maxAge(30 * 24 * 60 * 60) // 30 days
+                        .build();
+                response.addHeader(HttpHeaders.SET_COOKIE, newRefreshCookie.toString());
 
-                    var authResponse = AuthenticationResponse.builder()
-                            .httpResponse(customHttpResponse)
-                            .accessToken(newAccessToken)
-                            .build();
+                var customHttpResponse = HttpResponse.builder()
+                        .httpStatusCode(HttpStatus.OK.value())
+                        .httpStatus(HttpStatus.OK)
+                        .reason(HttpStatus.OK.getReasonPhrase())
+                        .message(SecurityConstants.REFRESHED_MESSAGE)
+                        .build();
 
-                    objectMapper.writeValue(response.getOutputStream(), authResponse);
-                }
-
-
+                return AuthenticationResponse.builder()
+                        .httpResponse(customHttpResponse)
+                        .accessToken(newAccessToken)
+                        .refreshToken(newRefreshToken) // for mobile clients
+                        .build();
+            } else {
+                tokenService.deleteToken(savedRefreshToken);
+                throw new CustomQlishException("Session expired. Please login again");
             }
         } catch (JwtException e) {
-            LOGGER.error("A Jwt Error occurred.", e);
+            LOGGER.error("A Jwt Error occurred", e);
+            throw new CustomQlishException("Session expired. Please login again");
         } catch (Exception e) {
-            LOGGER.error("An unexpected error occurred while trying to refreshing token", e);
-
+            LOGGER.error("An unexpected error occurred while trying to refresh token: {}", e.getLocalizedMessage(), e);
+            throw new CustomQlishException("Session expired. Please login again");
         }
 
     }

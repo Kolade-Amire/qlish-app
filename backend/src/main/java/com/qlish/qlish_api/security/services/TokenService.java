@@ -24,6 +24,11 @@ public class TokenService {
         return tokenRepository.findByToken(token).orElseThrow(() -> new EntityNotFoundException("token not found"));
     }
 
+    //validates a refresh token from a client request against the saved entity
+    public boolean validateToken(String refreshToken, Token token){
+        return token.getToken().equals(refreshToken);
+    }
+
     public void saveToken(Token token) {
         try {
             tokenRepository.save(token);
