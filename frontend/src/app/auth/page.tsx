@@ -1,9 +1,14 @@
-import AuthForm from "./components/AuthForm";
+import AuthComponent from "./components/AuthComponent";
+import {JSX} from "react";
 
-export default function AuthPage(){
-    return(
+export default function AuthPage(
+    {searchParams}: {
+        searchParams: {form?: string }
+    }
+): JSX.Element {
+    return (
         <div>
-            <AuthForm/>
+            <AuthComponent initialForm={searchParams.form}/>
         </div>
     )
 }

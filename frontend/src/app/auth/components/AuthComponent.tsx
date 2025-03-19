@@ -1,17 +1,24 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import ToggleButtons from './ToggleButtons';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 import Illustration from './AuthIllustration';
 import Image from "next/image";
 
-const AuthForm: React.FC = () => {
-    const [isLogin, setIsLogin] = useState(true);
+
+interface AuthComponentProps {
+    initialForm?: string;
+}
+
+const AuthComponent: React.FC<AuthComponentProps> = (
+    {initialForm}: AuthComponentProps
+) => {
+    const [formState, setFormState] = useState<"login" | "signup">(initialForm === "login" ? "login" : "signup");
 
     const toggleForm = () => {
-        setIsLogin(!isLogin);
+        setFormState(prev => (prev === "login" ? "signup" : "login"));
     };
 
     return (
@@ -32,15 +39,15 @@ const AuthForm: React.FC = () => {
                         </div>
                         {/* Toggle Buttons*/}
                         <div className="flex justify-center mb-8">
-                            <ToggleButtons isLogin={isLogin} onToggle={toggleForm} />
+                            <ToggleButtons form={formState} onToggle={toggleForm}/>
                         </div>
                         {/* Form Container */}
                         <div className="relative w-full h-[400px]">
-                            <div className={isLogin ? "block" : "hidden"}>
-                                <LoginForm />
+                            <div className={`${formState === "login" ? "block" : "hidden"}`}>
+                                <LoginForm/>
                             </div>
-                            <div className={isLogin ? "hidden" : "block"}>
-                                <SignupForm />
+                            <div className={`${formState === "signup" ? "block" : "hidden"}`}>
+                                <SignupForm/>
                             </div>
                         </div>
                     </div>
@@ -49,7 +56,7 @@ const AuthForm: React.FC = () => {
                 {/* Illustration Section */}
                 <div className="w-1/2 shadow-lg max-[768px]:hidden">
                     <div className="w-full h-full">
-                        <Illustration />
+                        <Illustration/>
                     </div>
                 </div>
             </div>
@@ -57,4 +64,4 @@ const AuthForm: React.FC = () => {
     );
 };
 
-export default AuthForm;
+export default AuthComponent;

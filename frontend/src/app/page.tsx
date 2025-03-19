@@ -26,7 +26,7 @@ export default function LandingPage() {
 
                             {/*Action buttons*/}
                             <div className="flex flex-wrap gap-4">
-                                <Link href="/auth" className="flex">
+                                <Link href="/auth?form=signup" className="flex">
                                     <button
                                         className="bg-[#2C3E50] hover:bg-[#6c6b6b] text-[#FFF0D3] text-[15px] w-40 h-10 rounded-sm text-center justify-center flex items-center font-semibold cursor-pointer gap-3">
                                         Get Started
@@ -127,7 +127,7 @@ export default function LandingPage() {
                             className="h-auto w-full mb-6"
                         />
                         <h2 className="text-2xl md:text-3xl font-bold text-[#2C3E50] mb-6">Start your first Qlish!</h2>
-                        <Link href="#">
+                        <Link href="../auth?form=signup">
                             <button
                                 className="bg-[#2C3E50] hover:bg-[#6c6b6b] text-[#FFF0D3] text-[15px] w-28 h-9 rounded-sm text-center justify-center items-center font-semibold cursor-pointer">Let's
                                 go!
