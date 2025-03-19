@@ -13,7 +13,6 @@ import com.qlish.qlish_api.generativeAI.GenerativeAIService;
 import com.qlish.qlish_api.generativeAI.QuestionParser;
 import com.qlish.qlish_api.leaderboard.LeaderboardEntry;
 import com.qlish.qlish_api.leaderboard.LeaderboardService;
-import com.qlish.qlish_api.question.enums.DifficultyLevel;
 import com.qlish.qlish_api.question.models.Question;
 import com.qlish.qlish_api.question.repositories.QuestionRepository;
 import com.qlish.qlish_api.test.dtos.*;
@@ -37,7 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -127,13 +125,8 @@ public class TestServiceImpl implements TestService {
     @Override
     @Transactional
     public List<Question> generateQuestions(TestRequest request) throws GenerativeAIException {
-        var subject = request.getSubject();
-        var difficultyLevel = DifficultyLevel.fromName(request.getLevel().name());
 
-        Set<String> associatedTopics = subject.getTopicsForLevel(difficultyLevel);
-        String topicsString = String.join(", ", associatedTopics);
-
-        var prompt = generativeAIService.getPrompt(request, topicsString);
+        var prompt = generativeAIService.getPrompt(request);
         var systemInstruction = generativeAIService.getSystemInstruction();
 
         try {

@@ -37,9 +37,9 @@ public class PointsSystem {
 public static int getTotalPoints(int scorePercentage, DifficultyLevel difficultyLevel) {
     var gradedPoints = calculatePoints(scorePercentage);
     Map<DifficultyLevel, Integer> multiplierMap = Map.of(
-            DifficultyLevel.ELEMENTARY, 1,
-            DifficultyLevel.INTERMEDIATE, 2,
-            DifficultyLevel.ADVANCED, 4
+            DifficultyLevel.EASY, 1,
+            DifficultyLevel.MEDIUM, 2,
+            DifficultyLevel.HARD, 4
     );
     return (multiplierMap.get(difficultyLevel) * gradedPoints);
 }
