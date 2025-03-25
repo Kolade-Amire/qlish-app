@@ -22,4 +22,5 @@ public class TestRequest {
     @NotNull
     private int count;
     private boolean random;
+    private String description;
 }
