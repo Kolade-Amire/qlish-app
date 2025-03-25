@@ -1,9 +1,6 @@
 import React from "react";
 import "./globals.css";
-import { Source_Sans_3 } from 'next/font/google'
-import LandingHeader from "./components/header";
-import LandingFooter from "./components/footer";
-
+import {Source_Sans_3} from 'next/font/google'
 
 
 const sourceSans3 = Source_Sans_3({
@@ -21,9 +18,7 @@ export default function RootLayout({
     return (
         <html lang="en" className={`${sourceSans3.variable}`}>
             <body className="font-sans min-h-screen bg-[#FFF0D3]">
-                <LandingHeader/>
                 <main>{children}</main>
-                <LandingFooter/>
             </body>
         </html>
     )

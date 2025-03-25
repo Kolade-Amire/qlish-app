@@ -26,10 +26,10 @@ export default function LandingHeader() {
 
                 {/* Desktop navigation */}
                 <div className="hidden md:flex items-center gap-x-3 mr-10">
-                    <Link href="#">
+                    <Link href="../auth?form=login">
                         <button className="text-[#2C3E50] font-semibold w-28 h-9 text-[15px] hover:text-[#878686] transition-colors cursor-pointer">Log in</button>
                     </Link>
-                    <Link href="#" className="flex">
+                    <Link href="../auth?form=signup" className="flex">
                         <button className="bg-[#2C3E50] hover:bg-[#6c6b6b] text-[#FFF0D3] text-[15px] w-28 h-9 rounded-sm text-center justify-center flex items-center font-semibold cursor-pointer">Sign up</button>
                     </Link>
                 </div>
