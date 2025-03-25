@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import LandingFooter from "./components/footer";
-import LandingHeader from "./components/header";
+import LandingHeader from "./components/landing_header.tsx";
 
 export default function LandingPage() {
     return (

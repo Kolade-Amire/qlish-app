@@ -1,11 +1,12 @@
 import AuthComponent from "./components/AuthComponent";
 import {JSX} from "react";
 
-export default function AuthPage(
-    {searchParams}: {
-        searchParams: {form?: string }
+export default async function AuthPage(
+    props: {
+        searchParams: Promise<{form?: string }>
     }
-): JSX.Element {
+): Promise<JSX.Element> {
+    const searchParams = await props.searchParams;
     return (
         <div>
             <AuthComponent initialForm={searchParams.form}/>
